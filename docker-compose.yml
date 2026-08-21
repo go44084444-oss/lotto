@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lotto
+      POSTGRES_PASSWORD: lotto
+      POSTGRES_DB: lotto
+    ports:
+      - "5432:5432"
+    volumes:
+      - lotto_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lotto -d lotto"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  lotto_pgdata:
