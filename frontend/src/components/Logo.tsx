@@ -1,10 +1,9 @@
-export function LogoMark({ size = 21 }: { size?: number }) {
+export function LogoMark({ size = 22 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="13" cy="5" r="3" stroke="#7c3aed" strokeWidth="2" />
-      <circle cx="5" cy="20" r="3" stroke="#7c3aed" strokeWidth="2" />
-      <circle cx="21" cy="20" r="3" stroke="#7c3aed" strokeWidth="2" />
-      <path d="M13 8L6 17M13 8L20 17" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 3L15 17L33 17Z" fill="#e0242c" />
+      <path d="M24 11L8 33L40 33Z" fill="#e0242c" />
+      <rect x="19" y="33" width="10" height="11" fill="#7c3aed" />
     </svg>
   );
 }

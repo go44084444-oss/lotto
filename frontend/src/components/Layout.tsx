@@ -17,7 +17,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <header className="nav">
         <Link to="/" className="brand">
           <LogoMark />
-          로또트리
+          LottoTree
         </Link>
         {isAuthenticated && (
           <nav>
