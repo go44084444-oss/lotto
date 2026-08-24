@@ -38,5 +38,11 @@ class Settings(BaseSettings):
 
     cors_allowed_origins: str = "http://localhost:5173"
 
+    # 웹 푸시(VAPID) — 비어 있으면 발송 시도 시 명확한 에러로 실패한다.
+    # 생성: uv run vapid --gen (py-vapid 패키지, pywebpush 의존성으로 함께 설치됨)
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    vapid_subject: str = "mailto:admin@example.com"
+
 
 settings = Settings()

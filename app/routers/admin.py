@@ -4,11 +4,13 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.db.session import get_db
-from app.models.assignment import WeeklyCycle
+from app.models.assignment import Assignment, WeeklyCycle
+from app.models.combination import CombinationPool
 from app.models.draw import Draw, draw_date_for
+from app.models.member import Member
 from app.schemas.assignment import WeeklyCycleLinkDrawIn, WeeklyCycleOut
 from app.schemas.draw import DrawIn, DrawOut
-from app.services import week_service
+from app.services import push_service, week_service, winchecker
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -120,3 +122,59 @@ def link_draw_to_cycle(
     db.commit()
     db.refresh(cycle)
     return cycle
+
+
+@router.post(
+    "/weekly-cycles/{cycle_id}/notify-winners",
+    dependencies=[Depends(_require_admin)],
+    description=(
+        "해당 주차에 배정된 조합을 당첨번호와 비교해 당첨된 회원에게 웹 푸시 알림을 "
+        "보낸다. 당첨번호 등록/연결 시 자동으로 호출되지 않으며, 관리자가 필요할 때 "
+        "직접 호출해야 한다(웹 푸시 채널만 구현됨 — 카카오톡 알림 등은 추후 추가 예정)."
+    ),
+)
+def notify_winners(cycle_id: int, db: Session = Depends(get_db)) -> dict:
+    cycle = db.get(WeeklyCycle, cycle_id)
+    if cycle is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="존재하지 않는 주차입니다."
+        )
+    if cycle.associated_draw_no is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="이 주차에 연결된 당첨번호가 없습니다. 먼저 link-draw로 연결하세요.",
+        )
+    draw = db.get(Draw, cycle.associated_draw_no)
+
+    assignments = db.query(Assignment).filter(Assignment.weekly_cycle_id == cycle.id).all()
+    if not assignments:
+        return {"notified_members": 0, "winning_combinations": 0}
+
+    combo_ids = [a.combination_id for a in assignments]
+    numbers_map = {
+        row.id: sorted(row.numbers)
+        for row in db.query(CombinationPool).filter(CombinationPool.id.in_(combo_ids)).all()
+    }
+
+    ranks_by_member: dict[int, list[int]] = {}
+    for a in assignments:
+        result = winchecker.check(
+            a.combination_id, numbers_map[a.combination_id], draw.numbers, draw.bonus_no
+        )
+        if result.rank is not None:
+            ranks_by_member.setdefault(a.member_id, []).append(result.rank)
+
+    notified = 0
+    for member_id, ranks in ranks_by_member.items():
+        member = db.get(Member, member_id)
+        if member is None:
+            continue
+        push_service.notify_win(
+            db, member, draw.draw_no, best_rank=min(ranks), win_count=len(ranks)
+        )
+        notified += 1
+
+    return {
+        "notified_members": notified,
+        "winning_combinations": sum(len(r) for r in ranks_by_member.values()),
+    }

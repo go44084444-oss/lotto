@@ -38,3 +38,7 @@ export interface WinCheckResponse {
   bonus_no: number;
   results: WinCheckResultItem[];
 }
+
+export interface VapidPublicKeyOut {
+  vapid_public_key: string;
+}

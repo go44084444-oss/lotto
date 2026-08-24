@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "../api/client";
 import type { AssignmentBatchOut } from "../api/types";
+import { PushNotificationToggle } from "../components/PushNotificationToggle";
 
 export function DashboardPage() {
   const [batch, setBatch] = useState<AssignmentBatchOut | null>(null);
@@ -43,6 +44,7 @@ export function DashboardPage() {
   return (
     <div>
       <h1>이번 주 배정</h1>
+      <PushNotificationToggle />
       {loading && <p>불러오는 중...</p>}
       {error && <p className="error">{error}</p>}
 
