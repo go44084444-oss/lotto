@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class CombinationOut(BaseModel):
@@ -29,3 +29,17 @@ class WinCheckResponse(BaseModel):
     winning_numbers: list[int]
     bonus_no: int
     results: list[WinCheckResultItem]
+
+
+class WeeklyCycleOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    cycle_key: date
+    starts_at: datetime
+    ends_at: datetime | None
+    associated_draw_no: int | None
+
+
+class WeeklyCycleLinkDrawIn(BaseModel):
+    draw_no: int
