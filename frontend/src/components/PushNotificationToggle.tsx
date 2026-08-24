@@ -37,10 +37,30 @@ export function PushNotificationToggle() {
   }
 
   return (
-    <div className="push-toggle">
-      <button onClick={handleToggle} disabled={busy}>
-        {subscribed ? "당첨 알림 끄기" : "당첨 알림 받기"}
-      </button>
+    <div>
+      <div className="push-toggle">
+        <button
+          type="button"
+          className="push-toggle__label"
+          onClick={handleToggle}
+          disabled={busy}
+          aria-pressed={subscribed}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 4C9.79 4 8 5.79 8 8V11.5L6 14.5V15.5H18V14.5L16 11.5V8C16 5.79 14.21 4 12 4Z"
+              stroke="#7c3aed"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <path d="M10 18C10.3 19 11 19.6 12 19.6C13 19.6 13.7 19 14 18" stroke="#7c3aed" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+          당첨 알림 받기
+        </button>
+        <div className={`toggle-switch${subscribed ? " toggle-switch--on" : ""}`}>
+          <div className="toggle-switch__knob" />
+        </div>
+      </div>
       {error && <p className="error">{error}</p>}
     </div>
   );

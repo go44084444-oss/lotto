@@ -9,12 +9,17 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (password !== confirmPassword) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
     setSubmitting(true);
     try {
       await register(email, password);
@@ -29,6 +34,7 @@ export function RegisterPage() {
   return (
     <div className="auth-page">
       <h1>회원가입</h1>
+      <p className="subtitle">가입하면 매주 자동으로 조합 20개를 배정받아요.</p>
       <form onSubmit={handleSubmit}>
         <label>
           이메일
@@ -45,6 +51,16 @@ export function RegisterPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
+        </label>
+        <label>
+          비밀번호 확인
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
             minLength={6}
           />

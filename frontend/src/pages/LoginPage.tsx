@@ -28,7 +28,8 @@ export function LoginPage() {
 
   return (
     <div className="auth-page">
-      <h1>로그인</h1>
+      <h1>다시 만나서 반가워요</h1>
+      <p className="subtitle">이메일로 로그인하고 이번 주 배정을 확인하세요.</p>
       <form onSubmit={handleSubmit}>
         <label>
           이메일

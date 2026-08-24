@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { LogoMark } from "./Logo";
 
 export function Layout({ children }: { children: ReactNode }) {
   const { isAuthenticated, logout } = useAuth();
@@ -15,12 +16,17 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="layout">
       <header className="nav">
         <Link to="/" className="brand">
-          로또 조합 배분
+          <LogoMark />
+          로또트리
         </Link>
         {isAuthenticated && (
           <nav>
-            <Link to="/">이번 주 배정</Link>
-            <Link to="/win-check">당첨 확인</Link>
+            <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
+              이번 주 배정
+            </NavLink>
+            <NavLink to="/win-check" className={({ isActive }) => (isActive ? "active" : "")}>
+              당첨 확인
+            </NavLink>
             <button onClick={handleLogout}>로그아웃</button>
           </nav>
         )}

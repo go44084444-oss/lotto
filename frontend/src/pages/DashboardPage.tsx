@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "../api/client";
 import type { AssignmentBatchOut } from "../api/types";
+import { NumberBall } from "../components/NumberBall";
 import { PushNotificationToggle } from "../components/PushNotificationToggle";
 
 export function DashboardPage() {
@@ -43,8 +44,8 @@ export function DashboardPage() {
 
   return (
     <div>
-      <h1>이번 주 배정</h1>
       <PushNotificationToggle />
+      <h1>이번 주 배정</h1>
       {loading && <p>불러오는 중...</p>}
       {error && <p className="error">{error}</p>}
 
@@ -56,12 +57,19 @@ export function DashboardPage() {
 
       {hasAssignment && batch && (
         <>
-          <p>
+          <p className="cycle-chip">
             {batch.cycle_key} 주차 · {batch.combinations.length}/{batch.quota}개
           </p>
           <ul className="combo-list">
-            {batch.combinations.map((c) => (
-              <li key={c.id}>{c.numbers.join(", ")}</li>
+            {batch.combinations.map((c, i) => (
+              <li key={c.id} className="combo-row">
+                <span className="combo-row__index">{i + 1}</span>
+                <div className="combo-row__balls">
+                  {c.numbers.map((n) => (
+                    <NumberBall key={n} value={n} />
+                  ))}
+                </div>
+              </li>
             ))}
           </ul>
         </>
