@@ -71,6 +71,12 @@ def create_draw(payload: DrawIn, db: Session = Depends(get_db)) -> Draw:
     db.add(draw)
     db.commit()
     db.refresh(draw)
+
+    cycle = week_service.find_cycle_for_draw_date(db, draw.draw_date)
+    if cycle is not None:
+        cycle.associated_draw_no = draw.draw_no
+        db.commit()
+
     return draw
 
 

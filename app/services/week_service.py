@@ -3,11 +3,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.models.assignment import WeeklyCycle
 
 
@@ -44,3 +46,23 @@ def rollover(db: Session) -> WeeklyCycle:
     db.commit()
     db.refresh(new_cycle)
     return new_cycle
+
+
+def find_cycle_for_draw_date(db: Session, draw_date: date) -> WeeklyCycle | None:
+    """당첨번호가 등록될 때, 그 회차가 속한 주(리셋 직전까지 활성이었던 주차)를 찾는다.
+    리셋 시각(WEEK_RESET_*) 1분 전 시점을 기준으로 활성 주차를 조회해, 추첨 당일 리셋이
+    이미 일어난 뒤에 당첨번호가 입력되더라도 올바른(추첨 전) 주차에 연결되게 한다."""
+    tz = ZoneInfo(settings.week_reset_timezone)
+    hour, minute = (int(x) for x in settings.week_reset_time.split(":"))
+    reset_at_local = datetime.combine(draw_date, time(hour, minute), tzinfo=tz)
+    just_before_reset = reset_at_local.astimezone(timezone.utc) - timedelta(minutes=1)
+
+    return (
+        db.query(WeeklyCycle)
+        .filter(
+            WeeklyCycle.starts_at <= just_before_reset,
+            or_(WeeklyCycle.ends_at.is_(None), WeeklyCycle.ends_at > just_before_reset),
+        )
+        .order_by(WeeklyCycle.starts_at.desc())
+        .first()
+    )
