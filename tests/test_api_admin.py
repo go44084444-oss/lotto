@@ -296,3 +296,51 @@ def test_notify_winners_counts_matching_members(
     )
     assert resp.status_code == 200
     assert resp.json() == {"notified_members": 1, "winning_combinations": 1}
+
+
+def test_regenerate_pool_requires_admin(client: TestClient) -> None:
+    resp = client.post("/admin/combination-pool/regenerate", json={})
+    assert resp.status_code == 422
+
+    resp2 = client.post(
+        "/admin/combination-pool/regenerate",
+        json={},
+        headers={"X-Admin-Api-Key": "wrong"},
+    )
+    assert resp2.status_code == 401
+
+
+def test_regenerate_pool_rejects_when_assignments_exist_and_not_reset(
+    client: TestClient, db_session: Session
+) -> None:
+    from datetime import datetime, timezone
+
+    from app.models.assignment import Assignment, WeeklyCycle
+    from app.models.combination import CombinationPool
+
+    cycle = WeeklyCycle(
+        cycle_key=datetime(2026, 8, 15, tzinfo=timezone.utc).date(),
+        starts_at=datetime(2026, 8, 15, 12, 0, tzinfo=timezone.utc),
+    )
+    db_session.add(cycle)
+    db_session.add(CombinationPool(id=1, numbers=[1, 2, 3, 4, 5, 6], combo_key=1))
+    db_session.commit()
+    db_session.refresh(cycle)
+
+    reg = client.post(
+        "/auth/register", json={"email": "poolreset@example.com", "password": "hunter2"}
+    )
+    member_id = client.get(
+        "/me", headers={"Authorization": f"Bearer {reg.json()['access_token']}"}
+    ).json()["id"]
+    db_session.add(
+        Assignment(weekly_cycle_id=cycle.id, member_id=member_id, combination_id=1)
+    )
+    db_session.commit()
+
+    resp = client.post(
+        "/admin/combination-pool/regenerate",
+        json={"reset_assignments": False},
+        headers=ADMIN_HEADERS,
+    )
+    assert resp.status_code == 409

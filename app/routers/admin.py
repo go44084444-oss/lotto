@@ -10,7 +10,8 @@ from app.models.draw import Draw, draw_date_for
 from app.models.member import Member
 from app.schemas.assignment import WeeklyCycleLinkDrawIn, WeeklyCycleOut
 from app.schemas.draw import DrawIn, DrawOut
-from app.services import push_service, week_service, winchecker
+from app.schemas.pool import RegeneratePoolIn, RegeneratePoolOut
+from app.services import combination_generator, push_service, week_service, winchecker
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -178,3 +179,35 @@ def notify_winners(cycle_id: int, db: Session = Depends(get_db)) -> dict:
         "notified_members": notified,
         "winning_combinations": sum(len(r) for r in ranks_by_member.values()),
     }
+
+
+@router.post(
+    "/combination-pool/regenerate",
+    response_model=RegeneratePoolOut,
+    dependencies=[Depends(_require_admin)],
+    description=(
+        "필터 규칙 변경 후 combination_pool을 전체 재생성한다(8,145,060개 전체 조합을 "
+        "다시 순회). 기존 배정(assignments)이 남아있으면 조합 ID가 깨지므로 거부한다 — "
+        "reset_assignments=true를 명시해야 배정 데이터를 먼저 비우고 진행한다."
+    ),
+)
+def regenerate_combination_pool(
+    payload: RegeneratePoolIn, db: Session = Depends(get_db)
+) -> RegeneratePoolOut:
+    if payload.reset_assignments:
+        db.query(Assignment).delete()
+        db.commit()
+    else:
+        assignment_count = db.query(Assignment).count()
+        if assignment_count > 0:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"assignments 테이블에 {assignment_count}개의 배정 기록이 있어 "
+                    "combination_pool을 재생성할 수 없습니다. reset_assignments=true로 "
+                    "다시 요청하세요."
+                ),
+            )
+
+    count = combination_generator.load_pool()
+    return RegeneratePoolOut(survivor_count=count, assignments_reset=payload.reset_assignments)
