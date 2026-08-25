@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
@@ -211,3 +211,40 @@ def regenerate_combination_pool(
 
     count = combination_generator.load_pool()
     return RegeneratePoolOut(survivor_count=count, assignments_reset=payload.reset_assignments)
+
+
+@router.delete(
+    "/members",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(_require_admin)],
+    description=(
+        "회원을 배정 기록과 함께 완전히 삭제한다. POST /me/withdraw(탈퇴 처리)와 달리 "
+        "복구할 수 없다. member_id 또는 email 중 하나로 대상을 지정한다."
+    ),
+)
+def delete_member(
+    member_id: int | None = Query(None),
+    email: str | None = Query(None),
+    db: Session = Depends(get_db),
+) -> Response:
+    if member_id is None and email is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="member_id 또는 email 중 하나는 필요합니다.",
+        )
+
+    query = db.query(Member)
+    member = (
+        query.filter(Member.id == member_id).first()
+        if member_id is not None
+        else query.filter(Member.email == email).first()
+    )
+    if member is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="존재하지 않는 회원입니다."
+        )
+
+    db.query(Assignment).filter(Assignment.member_id == member.id).delete()
+    db.delete(member)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -344,3 +344,89 @@ def test_regenerate_pool_rejects_when_assignments_exist_and_not_reset(
         headers=ADMIN_HEADERS,
     )
     assert resp.status_code == 409
+
+
+def test_delete_member_requires_admin(client: TestClient) -> None:
+    resp = client.request("DELETE", "/admin/members", params={"member_id": 1})
+    assert resp.status_code == 422
+
+    resp2 = client.request(
+        "DELETE",
+        "/admin/members",
+        params={"member_id": 1},
+        headers={"X-Admin-Api-Key": "wrong"},
+    )
+    assert resp2.status_code == 401
+
+
+def test_delete_member_requires_identifier(client: TestClient) -> None:
+    resp = client.request("DELETE", "/admin/members", headers=ADMIN_HEADERS)
+    assert resp.status_code == 400
+
+
+def test_delete_member_404_for_unknown_member(client: TestClient) -> None:
+    resp = client.request(
+        "DELETE", "/admin/members", params={"member_id": 999999}, headers=ADMIN_HEADERS
+    )
+    assert resp.status_code == 404
+
+
+def test_delete_member_by_id_removes_member_and_assignments(
+    client: TestClient, db_session: Session
+) -> None:
+    from datetime import datetime, timezone
+
+    from app.models.assignment import Assignment, WeeklyCycle
+    from app.models.combination import CombinationPool
+    from app.models.member import Member
+
+    reg = client.post(
+        "/auth/register", json={"email": "deleteme@example.com", "password": "hunter2"}
+    )
+    member_id = client.get(
+        "/me", headers={"Authorization": f"Bearer {reg.json()['access_token']}"}
+    ).json()["id"]
+
+    cycle = WeeklyCycle(
+        cycle_key=datetime(2026, 8, 15, tzinfo=timezone.utc).date(),
+        starts_at=datetime(2026, 8, 15, 12, 0, tzinfo=timezone.utc),
+    )
+    db_session.add(cycle)
+    db_session.add(CombinationPool(id=1, numbers=[1, 2, 3, 4, 5, 6], combo_key=1))
+    db_session.commit()
+    db_session.refresh(cycle)
+    db_session.add(
+        Assignment(weekly_cycle_id=cycle.id, member_id=member_id, combination_id=1)
+    )
+    db_session.commit()
+
+    resp = client.request(
+        "DELETE", "/admin/members", params={"member_id": member_id}, headers=ADMIN_HEADERS
+    )
+    assert resp.status_code == 204
+
+    assert db_session.get(Member, member_id) is None
+    assert (
+        db_session.query(Assignment).filter(Assignment.member_id == member_id).count() == 0
+    )
+
+
+def test_delete_member_by_email(client: TestClient, db_session: Session) -> None:
+    from app.models.member import Member
+
+    client.post(
+        "/auth/register", json={"email": "deletebyemail@example.com", "password": "hunter2"}
+    )
+
+    resp = client.request(
+        "DELETE",
+        "/admin/members",
+        params={"email": "deletebyemail@example.com"},
+        headers=ADMIN_HEADERS,
+    )
+    assert resp.status_code == 204
+
+    member = (
+        db_session.query(Member).filter(Member.email == "deletebyemail@example.com").first()
+    )
+    assert member is None
