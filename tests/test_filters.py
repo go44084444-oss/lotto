@@ -73,3 +73,16 @@ class TestHasTensGroupCollision:
 
     def test_does_not_trigger_on_known_good_combo(self) -> None:
         assert filters.has_tens_group_collision(GOOD_COMBO) is False
+
+
+class TestHasTicketGridCollision:
+    def test_triggers_when_four_share_a_row(self) -> None:
+        # 1,2,3,4는 모두 1행(1-7). 29,36은 각각 다른 행.
+        assert filters.has_ticket_grid_collision((1, 2, 3, 4, 29, 36)) is True
+
+    def test_triggers_when_four_share_a_column(self) -> None:
+        # 1,8,15,22는 모두 1열((n-1)%7 == 0). 30,40은 서로 다른 열.
+        assert filters.has_ticket_grid_collision((1, 8, 15, 22, 30, 40)) is True
+
+    def test_does_not_trigger_on_known_good_combo(self) -> None:
+        assert filters.has_ticket_grid_collision(GOOD_COMBO) is False

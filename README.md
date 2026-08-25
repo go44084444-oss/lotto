@@ -20,7 +20,7 @@ uv run alembic upgrade head
 ```powershell
 uv run python -m scripts.ingest_superkts      # 1~1234회 (superkts.com 엑셀)
 uv run python -m scripts.ingest_dhlottery     # 1235회~ (동행복권 API)
-uv run python -m scripts.generate_pool        # 8개 필터 적용, ~3,645,902개 적재
+uv run python -m scripts.generate_pool        # 9개 필터 적용, ~3,570,443개 적재
 ```
 
 `ingest_dhlottery.py`는 동행복권 사이트가 자동화된 요청에 대기실/차단 페이지를 반환하는
@@ -88,7 +88,7 @@ uv run pytest
 - `test_filters.py` — 8개 필터 규칙 단위 테스트 + 1237회 실제 당첨번호(10,20,23,34,37,40)가
   필터를 통과하는지 확인
 - `test_pool_generation.py` — 전체 814만 5,060개 조합 중 필터 생존 조합이 정확히
-  3,645,902개인지 확인 (DB 불필요, 수십 초 소요)
+  3,570,443개인지 확인 (DB 불필요, 수십 초 소요)
 - `test_assignment_concurrency.py` — 동시 요청 시 같은 주 내 조합 중복 배정이 없는지 확인
 - `test_api_*.py` — API 엔드포인트 계약 테스트 (인증/소유권 검증 포함)
 
