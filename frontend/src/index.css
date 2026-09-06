@@ -239,6 +239,37 @@ a:hover {
   flex-shrink: 0;
 }
 
+/* 실제 로또공 색상 규칙: 1-10 노랑, 11-20 파랑, 21-30 빨강, 31-40 회색, 41-45 초록 */
+.number-ball--range-1 {
+  background: #fbc400;
+  border-color: #fbc400;
+  color: #3d2b00;
+}
+
+.number-ball--range-2 {
+  background: #69c8f2;
+  border-color: #69c8f2;
+  color: #073a52;
+}
+
+.number-ball--range-3 {
+  background: #ff7272;
+  border-color: #ff7272;
+  color: #fff;
+}
+
+.number-ball--range-4 {
+  background: #aaaaaa;
+  border-color: #aaaaaa;
+  color: #fff;
+}
+
+.number-ball--range-5 {
+  background: #b0d840;
+  border-color: #b0d840;
+  color: #2c3a00;
+}
+
 .number-ball--winning {
   background: var(--accent);
   border-color: var(--accent);
