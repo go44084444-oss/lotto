@@ -270,16 +270,8 @@ a:hover {
   color: #2c3a00;
 }
 
-.number-ball--winning {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
 .number-ball--bonus {
-  background: var(--accent-subtle);
-  border: 1.5px dashed var(--accent);
-  color: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 }
 
 .number-ball--matched {
@@ -416,6 +408,64 @@ a:hover {
   font-weight: 700;
   color: var(--muted);
   margin: 0 0 10px;
+}
+
+.draw-history-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draw-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.draw-history-row__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 64px;
+}
+
+.draw-history-row__no {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.draw-history-row__date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.draw-history-row__balls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.draw-history-more {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.draw-history-more:hover:not(:disabled) {
+  background: var(--bg-page);
 }
 
 .push-toggle {

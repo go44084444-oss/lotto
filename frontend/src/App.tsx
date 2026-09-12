@@ -3,6 +3,7 @@ import { Layout } from "./components/Layout";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { DashboardPage } from "./pages/DashboardPage";
+import { DrawHistoryPage } from "./pages/DrawHistoryPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { WinCheckPage } from "./pages/WinCheckPage";
@@ -27,6 +28,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <WinCheckPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/draws"
+            element={
+              <ProtectedRoute>
+                <DrawHistoryPage />
               </ProtectedRoute>
             }
           />

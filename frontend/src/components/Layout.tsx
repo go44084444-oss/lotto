@@ -27,6 +27,9 @@ export function Layout({ children }: { children: ReactNode }) {
             <NavLink to="/win-check" className={({ isActive }) => (isActive ? "active" : "")}>
               당첨 확인
             </NavLink>
+            <NavLink to="/draws" className={({ isActive }) => (isActive ? "active" : "")}>
+              지난 회차
+            </NavLink>
             <button onClick={handleLogout}>로그아웃</button>
           </nav>
         )}

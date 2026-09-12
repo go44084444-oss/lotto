@@ -42,3 +42,10 @@ export interface WinCheckResponse {
 export interface VapidPublicKeyOut {
   vapid_public_key: string;
 }
+
+export interface DrawOut {
+  draw_no: number;
+  numbers: number[];
+  bonus_no: number;
+  draw_date: string;
+}

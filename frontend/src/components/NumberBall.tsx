@@ -9,6 +9,9 @@ function rangeModifier(value: number): string {
 }
 
 export function NumberBall({ value, variant = "default" }: { value: number; variant?: Variant }) {
-  const modifier = variant === "default" ? rangeModifier(value) : ` number-ball--${variant}`;
+  if (variant === "matched" || variant === "matched-win") {
+    return <span className={`number-ball number-ball--${variant}`}>{value}</span>;
+  }
+  const modifier = rangeModifier(value) + (variant === "bonus" ? " number-ball--bonus" : "");
   return <span className={`number-ball${modifier}`}>{value}</span>;
 }
