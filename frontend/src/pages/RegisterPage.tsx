@@ -3,6 +3,8 @@ import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { LogoMark } from "../components/Logo";
+import { TrustHighlights } from "../components/TrustHighlights";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -33,46 +35,52 @@ export function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <h1>회원가입</h1>
-      <p className="subtitle">가입하면 매주 자동으로 조합 20개를 배정받아요.</p>
-      <form onSubmit={handleSubmit}>
-        <label>
-          이메일
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          비밀번호
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </label>
-        <label>
-          비밀번호 확인
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </label>
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={submitting}>
-          {submitting ? "가입 중..." : "가입하기"}
-        </button>
-      </form>
-      <p>
-        이미 계정이 있으신가요? <Link to="/login">로그인</Link>
-      </p>
+      <div className="auth-hero">
+        <LogoMark size={32} />
+        <h1>회원가입</h1>
+        <p className="subtitle">가입하면 매주 자동으로 조합 20개를 배정받아요.</p>
+      </div>
+      <div className="auth-card">
+        <form onSubmit={handleSubmit}>
+          <label>
+            이메일
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label>
+            비밀번호
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </label>
+          <label>
+            비밀번호 확인
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </label>
+          {error && <p className="error">{error}</p>}
+          <button type="submit" disabled={submitting}>
+            {submitting ? "가입 중..." : "가입하기"}
+          </button>
+        </form>
+        <p>
+          이미 계정이 있으신가요? <Link to="/login">로그인</Link>
+        </p>
+      </div>
+      <TrustHighlights />
     </div>
   );
 }
