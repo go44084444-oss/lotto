@@ -50,7 +50,17 @@ export function WinCheckPage() {
             </div>
           </div>
 
-          <p className="section-label">내 조합 결과</p>
+          <div className="section-header">
+            <p className="section-label">내 조합 결과</p>
+            {(() => {
+              const winCount = data.results.filter((r) => r.rank !== null).length;
+              return winCount > 0 ? (
+                <span className="rank-badge rank-badge--win">{winCount}개 당첨</span>
+              ) : (
+                <span className="rank-badge">당첨 없음</span>
+              );
+            })()}
+          </div>
           <ul className="combo-list">
             {data.results.map((r) => {
               const winningSet = new Set(data.winning_numbers);
