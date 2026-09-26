@@ -53,11 +53,25 @@ export function WinCheckPage() {
           <div className="section-header">
             <p className="section-label">내 조합 결과</p>
             {(() => {
-              const winCount = data.results.filter((r) => r.rank !== null).length;
-              return winCount > 0 ? (
-                <span className="rank-badge rank-badge--win">{winCount}개 당첨</span>
-              ) : (
-                <span className="rank-badge">당첨 없음</span>
+              const rankCounts = new Map<number, number>();
+              for (const r of data.results) {
+                if (r.rank !== null) {
+                  rankCounts.set(r.rank, (rankCounts.get(r.rank) ?? 0) + 1);
+                }
+              }
+              if (rankCounts.size === 0) {
+                return <span className="rank-badge">당첨 없음</span>;
+              }
+              return (
+                <div className="section-header__badges">
+                  {[...rankCounts.entries()]
+                    .sort(([a], [b]) => a - b)
+                    .map(([rank, count]) => (
+                      <span key={rank} className="rank-badge rank-badge--win">
+                        {RANK_LABEL[rank]} {count}개
+                      </span>
+                    ))}
+                </div>
               );
             })()}
           </div>

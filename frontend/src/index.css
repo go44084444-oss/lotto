@@ -457,11 +457,20 @@ a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 10px;
 }
 
 .section-header .section-label {
   margin-bottom: 0;
+}
+
+.section-header__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .draw-history-list {
