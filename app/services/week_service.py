@@ -36,12 +36,21 @@ def get_or_create_current_cycle(db: Session) -> WeeklyCycle:
 
 def rollover(db: Session) -> WeeklyCycle:
     """수동/스케줄러 트리거 공용 롤오버. 정확한 컷오버 시각은 아직 미확정
-    (TODO(product): config.py의 WEEK_RESET_* 참고)."""
+    (TODO(product): config.py의 WEEK_RESET_* 참고).
+
+    cycle_key(date, UNIQUE)는 보통 하루에 한 번만 쓰이지만, 스케줄러 지연에 대한
+    수동 폴백 용도이므로 같은 날 두 번째로 호출될 수도 있다 — 그 경우 오늘 날짜가
+    이미 있으므로 겹치지 않는 다음 날짜를 찾아 쓴다(정상적인 주간 롤오버 흐름에는
+    영향 없음)."""
     now = datetime.now(timezone.utc)
     current = get_or_create_current_cycle(db)
     current.ends_at = now
 
-    new_cycle = WeeklyCycle(cycle_key=now.date(), starts_at=now)
+    key = now.date()
+    while db.query(WeeklyCycle).filter(WeeklyCycle.cycle_key == key).first() is not None:
+        key += timedelta(days=1)
+
+    new_cycle = WeeklyCycle(cycle_key=key, starts_at=now)
     db.add(new_cycle)
     db.commit()
     db.refresh(new_cycle)
