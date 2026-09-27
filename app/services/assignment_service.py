@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from collections import Counter
+
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -18,19 +20,53 @@ from app.services.week_service import get_or_create_current_cycle
 
 MAX_ATTEMPTS = 5
 
-_CANDIDATE_QUERY = text(
+NUMBER_REPEAT_SOFT_CAP = 3
+"""한 회원의 배치 하나(예: 20개) 안에서 같은 숫자가 이 횟수를 넘지 않도록 하는
+선호치 — 하드 제한이 아니다. 만족하는 후보가 없으면 즉시 포기하고 일반 무작위
+선택으로 대체하므로 멱등성/소진 계약(quota 달성 또는 InsufficientPoolError)에는
+영향이 없다. 당첨 확률도 바꾸지 않는다 — 어떤 조합이든 확률은 동일하며, 이 로직은
+한 회원에게 나가는 배치의 '구성'만 조정해 같은 숫자가 눈에 띄게 반복되는 것을 줄인다."""
+
+_CANDIDATE_QUERY_ONE = text(
     """
-    SELECT cp.id
+    SELECT cp.id, cp.numbers
     FROM combination_pool cp
     WHERE NOT EXISTS (
         SELECT 1 FROM assignments a
         WHERE a.weekly_cycle_id = :cycle_id AND a.combination_id = cp.id
     )
+    AND NOT (cp.id = ANY(CAST(:exclude_ids AS integer[])))
+    AND NOT (cp.numbers && CAST(:avoid_numbers AS smallint[]))
     ORDER BY random()
-    LIMIT :n
+    LIMIT 1
     FOR UPDATE SKIP LOCKED
     """
 )
+
+
+def _pick_candidates(db: Session, cycle_id: int, n: int) -> list[int]:
+    """무작위 후보 n개를 고르되, 같은 배치 안에서 특정 숫자가 NUMBER_REPEAT_SOFT_CAP
+    이상 반복되는 조합은 선호도 수준에서 피한다(만족하는 후보가 없으면 즉시 포기).
+    한 번에 한 개씩 잠그므로(FOR UPDATE SKIP LOCKED), 실제로 배정에 쓰지 않을 행을
+    잠그고 버리는 일이 없다 — 동시 배정 정합성(같은 조합 중복 배정 금지)에 영향을
+    주지 않는다."""
+    selected: list[int] = []
+    number_counts: Counter[int] = Counter()
+
+    for _ in range(n):
+        avoid_numbers = [
+            num for num, count in number_counts.items() if count >= NUMBER_REPEAT_SOFT_CAP
+        ]
+        params = {"cycle_id": cycle_id, "exclude_ids": selected, "avoid_numbers": avoid_numbers}
+        row = db.execute(_CANDIDATE_QUERY_ONE, params).first()
+        if row is None and avoid_numbers:
+            row = db.execute(_CANDIDATE_QUERY_ONE, {**params, "avoid_numbers": []}).first()
+        if row is None:
+            break
+        selected.append(row.id)
+        number_counts.update(row.numbers)
+
+    return selected
 
 
 class MemberWithdrawnError(Exception):
@@ -69,9 +105,7 @@ def assign_for_member(db: Session, member: Member) -> list[Assignment]:
         if remaining <= 0:
             break
 
-        candidate_ids = (
-            db.execute(_CANDIDATE_QUERY, {"cycle_id": cycle.id, "n": remaining}).scalars().all()
-        )
+        candidate_ids = _pick_candidates(db, cycle.id, remaining)
         if not candidate_ids:
             break
 
