@@ -112,5 +112,9 @@ class TestHasTightArithmeticRun:
         # 간격 1은 규칙1(is_consecutive)의 몫 — 이 규칙에서는 제외한다.
         assert filters.has_tight_arithmetic_run((10, 11, 12, 25, 30, 40)) is False
 
+    def test_triggers_on_three_numbers_spaced_by_seven(self) -> None:
+        # 2, 9, 16은 로또 용지 기준 같은 열에서 한 칸씩 내려가는 "세로 3연속".
+        assert filters.has_tight_arithmetic_run((2, 9, 16, 20, 33, 43)) is True
+
     def test_does_not_trigger_on_known_good_combo(self) -> None:
         assert filters.has_tight_arithmetic_run(GOOD_COMBO) is False
