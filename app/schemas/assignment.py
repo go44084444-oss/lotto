@@ -43,3 +43,10 @@ class WeeklyCycleOut(BaseModel):
 
 class WeeklyCycleLinkDrawIn(BaseModel):
     draw_no: int
+
+
+class WeeklyCycleParticipationOut(BaseModel):
+    weekly_cycle_id: int
+    cycle_key: date
+    member_count: int
+    assignment_count: int

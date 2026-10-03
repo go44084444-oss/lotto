@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -8,7 +8,11 @@ from app.models.assignment import Assignment, WeeklyCycle
 from app.models.combination import CombinationPool
 from app.models.draw import Draw, draw_date_for
 from app.models.member import Member
-from app.schemas.assignment import WeeklyCycleLinkDrawIn, WeeklyCycleOut
+from app.schemas.assignment import (
+    WeeklyCycleLinkDrawIn,
+    WeeklyCycleOut,
+    WeeklyCycleParticipationOut,
+)
 from app.schemas.draw import DrawIn, DrawOut
 from app.schemas.pool import RegeneratePoolIn, RegeneratePoolOut
 from app.services import combination_generator, push_service, week_service, winchecker
@@ -94,6 +98,32 @@ def list_weekly_cycles(
     db: Session = Depends(get_db),
 ) -> list[WeeklyCycle]:
     return db.query(WeeklyCycle).order_by(desc(WeeklyCycle.starts_at)).limit(limit).all()
+
+
+@router.get(
+    "/weekly-cycles/{cycle_id}/participation",
+    response_model=WeeklyCycleParticipationOut,
+    dependencies=[Depends(_require_admin)],
+    description=(
+        "특정 주차에 배정을 받은 회원 수와 배정된 조합 총 개수를 조회한다. "
+        "당첨번호가 아직 등록되지 않은(추첨 전) 주차에도 쓸 수 있다."
+    ),
+)
+def get_weekly_cycle_participation(cycle_id: int, db: Session = Depends(get_db)) -> dict:
+    cycle = db.get(WeeklyCycle, cycle_id)
+    if cycle is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="존재하지 않는 주차입니다."
+        )
+    member_count, assignment_count = db.query(
+        func.count(func.distinct(Assignment.member_id)), func.count(Assignment.id)
+    ).filter(Assignment.weekly_cycle_id == cycle_id).one()
+    return {
+        "weekly_cycle_id": cycle.id,
+        "cycle_key": cycle.cycle_key,
+        "member_count": member_count,
+        "assignment_count": assignment_count,
+    }
 
 
 @router.post(
