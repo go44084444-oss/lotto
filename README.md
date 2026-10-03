@@ -1,6 +1,6 @@
 # 로또 조합 배분 API
 
-로또 6/45 조합을 8개 규칙으로 필터링해 회원에게 주 단위로 중복 없이 배분하는 API 서버 + React 웹앱.
+로또 6/45 조합을 10개 규칙으로 필터링해 회원에게 주 단위로 중복 없이 배분하는 API 서버 + React 웹앱.
 스펙 원문은 `CLAUDE_1.md`, 구현 계획은 `C:\Users\go550\.claude\plans\reflective-painting-kahan.md`,
 인증/웹앱/배포 계획은 `C:\Users\go550\.claude\plans\quirky-sauteeing-engelbart.md` 참고.
 
@@ -20,7 +20,7 @@ uv run alembic upgrade head
 ```powershell
 uv run python -m scripts.ingest_superkts      # 1~1234회 (superkts.com 엑셀)
 uv run python -m scripts.ingest_dhlottery     # 1235회~ (동행복권 API)
-uv run python -m scripts.generate_pool        # 9개 필터 적용, ~3,570,443개 적재
+uv run python -m scripts.generate_pool        # 10개 필터 적용, ~3,130,632개 적재
 ```
 
 `ingest_dhlottery.py`는 동행복권 사이트가 자동화된 요청에 대기실/차단 페이지를 반환하는
@@ -85,10 +85,10 @@ docker run -d --rm --network lotto-api_default -p 8000:8000 `
 uv run pytest
 ```
 
-- `test_filters.py` — 8개 필터 규칙 단위 테스트 + 1237회 실제 당첨번호(10,20,23,34,37,40)가
+- `test_filters.py` — 10개 필터 규칙 단위 테스트 + 1236회 실제 당첨번호(12,18,21,29,34,38)가
   필터를 통과하는지 확인
 - `test_pool_generation.py` — 전체 814만 5,060개 조합 중 필터 생존 조합이 정확히
-  3,570,443개인지 확인 (DB 불필요, 수십 초 소요)
+  3,130,632개인지 확인 (DB 불필요, 수십 초 소요)
 - `test_assignment_concurrency.py` — 동시 요청 시 같은 주 내 조합 중복 배정이 없는지 확인
 - `test_api_*.py` — API 엔드포인트 계약 테스트 (인증/소유권 검증 포함)
 

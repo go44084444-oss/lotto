@@ -1,11 +1,20 @@
 from app.services import filters
 
-# 1237회(2026-08-15) 실제 당첨번호 — 스펙의 검증③: 8개 필터를 모두 통과해야 한다.
-GOOD_COMBO: filters.Combo = (10, 20, 23, 34, 37, 40)
+# 1236회(2026-08-08) 실제 당첨번호 — 10개 필터를 모두 통과해야 한다.
+GOOD_COMBO: filters.Combo = (12, 18, 21, 29, 34, 38)
+
+# 1237회(2026-08-15) 실제 당첨번호. 과거(9개 필터 시절)에는 GOOD_COMBO로 쓰였으나,
+# 34·37·40이 간격 3으로 3연속이라 규칙10(has_tight_arithmetic_run) 추가 후 제외된다.
+DRAW_1237_COMBO: filters.Combo = (10, 20, 23, 34, 37, 40)
 
 
-def test_draw_1237_known_good_combo_survives_all_filters() -> None:
+def test_known_good_combo_survives_all_filters() -> None:
     assert filters.passes_all_filters(GOOD_COMBO) is True
+
+
+def test_draw_1237_now_excluded_by_tight_arithmetic_run_rule() -> None:
+    assert filters.has_tight_arithmetic_run(DRAW_1237_COMBO) is True
+    assert filters.passes_all_filters(DRAW_1237_COMBO) is False
 
 
 class TestIsConsecutive:
@@ -86,3 +95,22 @@ class TestHasTicketGridCollision:
 
     def test_does_not_trigger_on_known_good_combo(self) -> None:
         assert filters.has_ticket_grid_collision(GOOD_COMBO) is False
+
+
+class TestHasTightArithmeticRun:
+    def test_triggers_on_three_numbers_spaced_by_two(self) -> None:
+        assert filters.has_tight_arithmetic_run((5, 7, 9, 20, 30, 40)) is True
+
+    def test_triggers_on_three_numbers_spaced_by_three(self) -> None:
+        assert filters.has_tight_arithmetic_run((15, 18, 21, 23, 25, 30)) is True
+
+    def test_does_not_trigger_on_two_numbers_alone(self) -> None:
+        # 간격 2짜리 쌍 하나뿐 — 3개 이상 연속이어야 걸린다.
+        assert filters.has_tight_arithmetic_run((1, 23, 25, 30, 40, 45)) is False
+
+    def test_does_not_trigger_on_spacing_of_one(self) -> None:
+        # 간격 1은 규칙1(is_consecutive)의 몫 — 이 규칙에서는 제외한다.
+        assert filters.has_tight_arithmetic_run((10, 11, 12, 25, 30, 40)) is False
+
+    def test_does_not_trigger_on_known_good_combo(self) -> None:
+        assert filters.has_tight_arithmetic_run(GOOD_COMBO) is False

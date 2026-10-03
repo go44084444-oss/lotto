@@ -1,11 +1,11 @@
-"""9개 조합 필터 규칙.
+"""10개 조합 필터 규칙.
 
 중요: 이 필터는 당첨 확률을 높이지 않는다. "패턴이 뚜렷해 보이는" 조합을 판매 풀에서
 제외할 뿐이며, 45개 중 6개를 고르는 모든 조합은 여전히 동일한 확률을 가진다. 이
 모듈이나 이를 사용하는 API 문서/주석에 "확률을 향상시킨다"는 식의 표현을 쓰지 않는다.
 
 각 함수는 정렬된 6개 숫자 튜플을 받아 해당 규칙에 "해당하면"(=제외 대상이면) True를
-반환한다. `passes_all_filters`는 9개 규칙 중 어느 것에도 해당하지 않을 때만 True.
+반환한다. `passes_all_filters`는 10개 규칙 중 어느 것에도 해당하지 않을 때만 True.
 """
 
 from __future__ import annotations
@@ -80,6 +80,14 @@ def has_ticket_grid_collision(nums: Combo) -> bool:
     return max(rows.values()) >= 4 or max(cols.values()) >= 4
 
 
+def has_tight_arithmetic_run(nums: Combo) -> bool:
+    """규칙10: 정렬 시 간격이 2 또는 3으로 동일한 구간이 연속으로 2번 이상 나타나면
+    (=숫자 3개 이상이 같은 간격(2 또는 3)으로 등차수열을 이루면) True. 간격 1은
+    규칙1(is_consecutive)이 이미 담당하므로 여기서는 제외한다."""
+    diffs = [b - a for a, b in zip(nums, nums[1:])]
+    return any(diffs[i] == diffs[i + 1] and diffs[i] in (2, 3) for i in range(len(diffs) - 1))
+
+
 ALL_RULES = (
     is_consecutive,
     is_all_same_parity,
@@ -90,9 +98,10 @@ ALL_RULES = (
     has_last_digit_collision,
     has_tens_group_collision,
     has_ticket_grid_collision,
+    has_tight_arithmetic_run,
 )
 
 
 def passes_all_filters(nums: Combo) -> bool:
-    """9개 규칙 중 어느 것에도 해당하지 않으면(=제외되지 않으면) True."""
+    """10개 규칙 중 어느 것에도 해당하지 않으면(=제외되지 않으면) True."""
     return not any(rule(nums) for rule in ALL_RULES)
