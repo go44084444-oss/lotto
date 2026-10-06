@@ -9,7 +9,7 @@ import logging
 
 from app.services.combination_generator import load_pool
 
-EXPECTED_COUNT = 3_570_443
+EXPECTED_COUNT = 3_003_691
 
 
 def main() -> None:

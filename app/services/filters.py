@@ -81,16 +81,20 @@ def has_ticket_grid_collision(nums: Combo) -> bool:
 
 
 def has_tight_arithmetic_run(nums: Combo) -> bool:
-    """규칙10: 정렬 시 간격이 2, 3 또는 7로 동일한 구간이 연속으로 2번 이상 나타나면
-    (=숫자 3개 이상이 같은 간격으로 등차수열을 이루면) True. 간격 1은 규칙1
-    (is_consecutive)이 이미 담당하므로 여기서는 제외한다. 간격 7은 실제 로또 구매
-    용지(7칸 가로 배열)에서 같은 열을 한 칸씩 내려가는 "세로 연속"에 해당한다 —
-    규칙9(has_ticket_grid_collision)는 같은 열에 4개 이상 몰려야 걸리므로, 3개가
-    세로로 이어지는 경우는 이 규칙이 담당한다."""
+    """규칙10: 다음 중 하나라도 해당하면 True.
+
+    - 정렬 시 간격이 2 또는 3으로 동일한 구간이 연속으로 2번 이상 나타남(=숫자 3개
+      이상이 같은 간격으로 이어짐). 간격 1은 규칙1(is_consecutive)이 담당한다.
+    - n, n+7, n+14가 모두 포함됨. 실제 로또 구매 용지(7칸 가로 배열)에서 같은 열을
+      한 칸씩 내려가는 "세로 3연속"이다. 정렬 순서상 사이에 다른 숫자가 끼어 있어도
+      (예: 5, 8, 12, 19) 용지 위에서는 세로로 이어지므로 위치와 무관하게 판정한다.
+      규칙9(has_ticket_grid_collision)는 같은 열에 4개 이상 몰려야 걸리므로, 3개가
+      세로로 이어지는 경우는 이 규칙이 담당한다."""
     diffs = [b - a for a, b in zip(nums, nums[1:])]
-    return any(
-        diffs[i] == diffs[i + 1] and diffs[i] in (2, 3, 7) for i in range(len(diffs) - 1)
-    )
+    if any(diffs[i] == diffs[i + 1] and diffs[i] in (2, 3) for i in range(len(diffs) - 1)):
+        return True
+    present = set(nums)
+    return any(n + 7 in present and n + 14 in present for n in nums)
 
 
 ALL_RULES = (

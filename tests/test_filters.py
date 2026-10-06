@@ -116,5 +116,17 @@ class TestHasTightArithmeticRun:
         # 2, 9, 16은 로또 용지 기준 같은 열에서 한 칸씩 내려가는 "세로 3연속".
         assert filters.has_tight_arithmetic_run((2, 9, 16, 20, 33, 43)) is True
 
+    def test_triggers_on_vertical_run_with_numbers_in_between(self) -> None:
+        # 5, 12, 19는 세로 3연속이지만 정렬하면 8·15가 사이에 끼어 간격이 동일하지 않다.
+        assert filters.has_tight_arithmetic_run((5, 8, 12, 15, 19, 30)) is True
+
+    def test_triggers_on_draw_1004_vertical_run(self) -> None:
+        # 1004회 당첨번호 — 30·37·44가 세로 3연속인데 기존 정렬 기준으로는 통과했었다.
+        assert filters.has_tight_arithmetic_run((7, 15, 30, 37, 39, 44)) is True
+
+    def test_does_not_trigger_on_two_vertical_numbers_alone(self) -> None:
+        # 세로로 2개(5, 12)만 이어진 경우는 해당하지 않는다.
+        assert filters.has_tight_arithmetic_run((5, 12, 20, 27, 35, 44)) is False
+
     def test_does_not_trigger_on_known_good_combo(self) -> None:
         assert filters.has_tight_arithmetic_run(GOOD_COMBO) is False
