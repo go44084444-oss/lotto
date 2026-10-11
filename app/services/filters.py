@@ -18,6 +18,9 @@ PRIMES_1_45: frozenset[int] = frozenset({2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31,
 
 ZONES: tuple[tuple[int, int], ...] = ((1, 15), (16, 30), (31, 45))
 
+LOW_CLUSTER_MAX = 10
+LOW_CLUSTER_MIN_COUNT = 4
+
 TENS_GROUPS: tuple[tuple[int, int], ...] = ((1, 9), (10, 19), (20, 29), (30, 39), (40, 45))
 
 
@@ -38,7 +41,10 @@ def is_arithmetic_sequence(nums: Combo) -> bool:
 
 
 def is_zone_clustered(nums: Combo) -> bool:
-    """규칙4: 1~15 / 16~30 / 31~45 세 구간 중 한 구간에 6개가 모두 몰림."""
+    """규칙4: 1~15 / 16~30 / 31~45 세 구간 중 한 구간에 6개가 모두 몰리거나,
+    1~10에 4개 이상 몰림(예: 1, 3, 6, 8, 42, 44)."""
+    if sum(n <= LOW_CLUSTER_MAX for n in nums) >= LOW_CLUSTER_MIN_COUNT:
+        return True
     return any(all(lo <= n <= hi for n in nums) for lo, hi in ZONES)
 
 

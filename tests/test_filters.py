@@ -48,6 +48,15 @@ class TestIsZoneClustered:
     def test_triggers_when_all_in_one_zone(self) -> None:
         assert filters.is_zone_clustered((1, 2, 3, 4, 5, 15)) is True
 
+    def test_triggers_on_four_numbers_in_one_to_ten(self) -> None:
+        assert filters.is_zone_clustered((1, 3, 6, 8, 42, 44)) is True
+
+    def test_low_cluster_includes_ten(self) -> None:
+        assert filters.is_zone_clustered((2, 4, 7, 10, 25, 40)) is True
+
+    def test_does_not_trigger_on_three_numbers_in_one_to_ten(self) -> None:
+        assert filters.is_zone_clustered((1, 3, 6, 12, 20, 44)) is False
+
     def test_does_not_trigger_on_known_good_combo(self) -> None:
         assert filters.is_zone_clustered(GOOD_COMBO) is False
 
